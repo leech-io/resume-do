@@ -27,6 +27,7 @@ import OriginalResumeView from './OriginalResumeView';
 import OriginalImportButton from './OriginalImportButton';
 import ThemeToggle from './ThemeToggle';
 import { loadFont } from './fonts';
+import { printResumePreview } from './printPreview';
 import { resumeViewKind, confirmResumeDelete } from './originalResume';
 import {
   AppearanceDialog,
@@ -183,6 +184,8 @@ export default function EditorPage({ user, resumeId, onBack, onLogout }: {
   const [collapsed, setCollapsed] = useState(false);
   const [pageCount, setPageCount] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [preparingPrint, setPreparingPrint] = useState(false);
+  const printingRef = useRef(false);
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
@@ -916,6 +919,20 @@ export default function EditorPage({ user, resumeId, onBack, onLogout }: {
     finally { setDeleting(false); }
   }
 
+  async function openPrintPreview() {
+    if (printingRef.current || !canvasRef.current) return;
+    printingRef.current = true;
+    setPreparingPrint(true);
+    try {
+      await printResumePreview(canvasRef.current);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '无法打开打印预览，请重试。');
+    } finally {
+      printingRef.current = false;
+      if (mountedRef.current) setPreparingPrint(false);
+    }
+  }
+
   function openExportDialog() {
     if (!doc) return;
     if (!doc.basic.name.trim() && !window.confirm('姓名为空，导出将使用占位姓名。是否继续？')) return;
@@ -1052,6 +1069,10 @@ export default function EditorPage({ user, resumeId, onBack, onLogout }: {
         <span className="user-chip" title={user.email}>
           {user.displayName || user.email}
         </span>
+        <button type="button" className="print-preview-button" disabled={preparingPrint || deleting}
+          onClick={() => void openPrintPreview()}>
+          {preparingPrint ? '正在准备…' : '打印预览'}
+        </button>
         <button type="button" className="primary" onClick={openExportDialog}>
           ↓ 下载 PDF
         </button>
@@ -1089,7 +1110,7 @@ export default function EditorPage({ user, resumeId, onBack, onLogout }: {
 
       <div className="workspace">
         <div className="stage">
-          <main className="canvas" ref={canvasRef}>
+          <main className="canvas resume-print-root" ref={canvasRef}>
             <div className="canvas-head">
               <span id="page-info">
                 A4 预览 · 共 {pageCount} 页

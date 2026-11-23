@@ -96,7 +96,7 @@ export default function Preview({ document, appearance, zoom, onPageCount }: Pre
   }, [blocks, appearance, document, fontEpoch, aside, main]);
 
   return (
-    <div className="preview-root">
+    <div className="preview-root" data-overflow={overflow} data-font-id={appearance.fontId}>
       <div ref={measureRef} className="measure-host" aria-hidden="true" />
       <div ref={asideMeasureRef} className="measure-host" aria-hidden="true" />
       {overflow && (

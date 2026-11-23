@@ -3110,3 +3110,56 @@ button.danger-text:hover:not(:disabled) {
   font-size: 12px;
   line-height: 1.7;
 }
+
+
+/* Print only the live structured resume, without changing its screen layout. */
+@media print {
+  :root:has(.resume-print-root) {
+    color-scheme: light;
+  }
+
+  body:has(.resume-print-root),
+  body:has(.resume-print-root) :is(#root, .app-shell, .workspace, .stage, .resume-print-root) {
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body:has(.resume-print-root) > :not(#root),
+  body:has(.resume-print-root) #root > :not(.app-shell),
+  .app-shell:has(.resume-print-root) > :not(.workspace),
+  .workspace:has(.resume-print-root) > :not(.stage),
+  .stage:has(.resume-print-root) > :not(.resume-print-root),
+  .resume-print-root > :not(.preview-root),
+  .resume-print-root > .preview-root > :not(.pages) {
+    display: none !important;
+  }
+
+  .resume-print-root > .preview-root,
+  .resume-print-root .pages {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+
+  .resume-print-root .pages .r-page {
+    margin: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
