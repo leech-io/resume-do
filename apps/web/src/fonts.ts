@@ -36,19 +36,18 @@ const WEB_FONT_LOADERS: Partial<Record<FontId, () => Promise<unknown>>> = {
 const loaded = new Set<FontId>();
 const pending = new Map<FontId, Promise<void>>();
 
-export function loadFont(fontId: FontId): Promise<void> {
+export function loadFont(fontId: FontId, strict = false): Promise<void> {
   const loader = WEB_FONT_LOADERS[fontId];
   if (!loader || loaded.has(fontId)) return Promise.resolve();
   const existing = pending.get(fontId);
-  if (existing) return existing;
+  if (existing) return strict ? existing : existing.catch(() => undefined);
   const family = WEB_FONT_FAMILIES[fontId];
   const task = loader()
     .then(() => globalThis.document.fonts?.load(`14px "${family}"`, '简历Aa'))
     .then(() => {
       loaded.add(fontId);
     })
-    .catch(() => undefined)
     .finally(() => pending.delete(fontId));
   pending.set(fontId, task);
-  return task;
+  return strict ? task : task.catch(() => undefined);
 }
