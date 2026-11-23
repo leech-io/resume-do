@@ -27,3 +27,6 @@ apps/web/public/pdfjs/
 
 # Local secrets loaded only by the local profile
 .resume-do-local.yml
+
+# 本机 AI 工具工作目录
+.workbuddy/
