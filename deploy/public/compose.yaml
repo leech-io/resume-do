@@ -15,6 +15,7 @@ services:
       - /tmp:rw,noexec,nosuid,size=16m
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /home/ubuntu/xiachen-public/extra:/etc/caddy/extra:ro
       - ./site:/srv:ro
       - caddy_data:/data
       - caddy_config:/config

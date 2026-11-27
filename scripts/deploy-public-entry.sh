@@ -6,6 +6,8 @@ version=${1:?commit SHA required}
 [[ "$version" =~ ^[a-f0-9]{40}$ ]] || exit 1
 root=/home/ubuntu/xiachen-public
 mkdir -p "$root/releases" "$root/incoming"
+# Private extension files stay outside immutable release archives.
+if [[ ! -d "$root/extra" ]]; then mkdir -m 755 "$root/extra"; fi
 exec 9>"$root/deploy.lock"
 flock -w 60 9 || { echo 'Public gateway deployment is busy' >&2; exit 1; }
 DOCKER=(docker)
@@ -54,7 +56,8 @@ compose pull gateway
 image=$(compose config --images)
 "${DOCKER[@]}" run --rm --network none --read-only --cap-drop ALL --cap-add NET_BIND_SERVICE \
   --tmpfs /tmp --tmpfs /data --tmpfs /config \
-  -v "$release/Caddyfile:/etc/caddy/Caddyfile:ro" "$image" \
+  -v "$release/Caddyfile:/etc/caddy/Caddyfile:ro" \
+  -v "$root/extra:/etc/caddy/extra:ro" "$image" \
   caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 old=$(readlink -f "$root/current" || true)
 rollback() {

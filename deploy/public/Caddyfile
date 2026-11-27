@@ -39,3 +39,6 @@ resume.xiachen.xyz {
         header_down Set-Cookie "^(.*)$" "$1; Secure"
     }
 }
+
+# Server-managed private sites survive shared gateway releases.
+import /etc/caddy/extra/*.caddy
