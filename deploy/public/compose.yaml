@@ -17,6 +17,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - /home/ubuntu/xiachen-public/extra:/etc/caddy/extra:ro
       - ./site:/srv:ro
+      - /home/ubuntu/xiachen-public/xiachen-admin:/srv/xiachen-admin:ro
       - caddy_data:/data
       - caddy_config:/config
     logging:

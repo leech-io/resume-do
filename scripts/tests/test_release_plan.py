@@ -14,6 +14,27 @@ SPEC.loader.exec_module(planner)
 
 
 class ReleasePlanTests(unittest.TestCase):
+    def test_gateway_only_push_does_not_release_application_services(self):
+        with self.history() as (git, commit):
+            base = commit('apps/api/src/main/App.java', 'production')
+            for path in ('deploy/public/Caddyfile', 'deploy/public/compose.yaml',
+                         'scripts/deploy-public-entry.sh', '.github/workflows/public-entry.yml'):
+                head = commit(path, 'independent gateway change')
+            result = planner.plan(base, head, event_base=base)
+            self.assertFalse(result['deployment_required'])
+            self.assertFalse(result['migrations'])
+
+    def test_gateway_push_does_not_retry_unpublished_application_code(self):
+        with self.history() as (git, commit):
+            deployed = commit('apps/web/src/App.tsx', 'deployed')
+            unpublished = commit('apps/web/src/App.tsx', 'previous failed release')
+            head = commit('deploy/public/Caddyfile', 'independent gateway change')
+            result = planner.plan(deployed, head, event_base=unpublished)
+            self.assertIn('web', result['services'])
+            self.assertFalse(result['deployment_required'])
+            runtime = commit('apps/api/src/main/App.java', 'business code')
+            self.assertTrue(planner.plan(deployed, runtime, event_base=head)['deployment_required'])
+
     def test_deploy_condition_allows_intentionally_skipped_ancestors(self):
         # GitHub otherwise injects success(), which propagates the skipped integration
         # ancestor even though the always() aggregate check itself succeeds.

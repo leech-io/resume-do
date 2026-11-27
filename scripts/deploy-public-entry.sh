@@ -5,7 +5,7 @@ umask 077
 version=${1:?commit SHA required}
 [[ "$version" =~ ^[a-f0-9]{40}$ ]] || exit 1
 root=/home/ubuntu/xiachen-public
-mkdir -p "$root/releases" "$root/incoming"
+mkdir -p "$root/releases" "$root/incoming" "$root/xiachen-admin"
 # Private extension files stay outside immutable release archives.
 if [[ ! -d "$root/extra" ]]; then mkdir -m 755 "$root/extra"; fi
 exec 9>"$root/deploy.lock"
@@ -41,6 +41,8 @@ with tarfile.open(source, 'r:gz') as archive:
         output.write_bytes(archive.extractfile(member).read())
         output.chmod(0o644)
 PY
+# Parent site is read-only; create the nested bind mountpoint before Docker starts.
+install -d -m 755 "$release/site/xiachen-admin"
 compose() { "${DOCKER[@]}" compose -p xiachen-public -f "$release/compose.yaml" "$@" </dev/null; }
 compose config --quiet
 curl -fsS --max-time 5 http://127.0.0.1:8080/health >/dev/null

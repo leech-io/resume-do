@@ -13,6 +13,12 @@ SERVICES = ('api', 'worker', 'web')
 
 def requires_deployment(path):
     """Classify this event independently of accumulated, not-yet-released changes."""
+    # The shared edge has its own workflow and must not release application images.
+    # Keep affected()/fingerprints conservative for deployed-baseline compatibility.
+    if path.startswith('deploy/public/') or path in (
+        'scripts/deploy-public-entry.sh', '.github/workflows/public-entry.yml',
+    ):
+        return False
     if path.startswith(('docs/', '.idea/', '.qoder/', '.run/', 'scripts/tests/')):
         return False
     if path.lower() in ('readme.md', 'agents.md', '.gitignore'):
